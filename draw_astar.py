@@ -9,12 +9,6 @@ def draw_exploration(start, end, came_from):
     for y in range(end[0] + 1):
         ax.axhline(y, color='k', lw=1)
 
-    # Draw grid cells
-#    for y in range(len(grid)):
-#        for x in range(len(grid[0])):
-#            if grid[y][x] == 1:  # obstacle
-#                ax.fill_between([x, x+1], y, y+1, color='gray', alpha=0.5)
-
     # Draw exploration
     for node, parent in came_from.items():
         if parent is not None:
