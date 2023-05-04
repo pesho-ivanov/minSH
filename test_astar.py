@@ -1,5 +1,6 @@
 import unittest
 from astar import astar, reconstruct_path, euclidean_distance
+from draw_astar import draw_exploration
 
 class TestAStar(unittest.TestCase):
     def setUp(self):
@@ -25,6 +26,12 @@ class TestAStar(unittest.TestCase):
         start, end = (0, 0), (3, 3)
         came_from, cost_so_far = astar(self.graph, start, end)
         self.assertNotIn(end, came_from)
+
+    def test_astar_draw(self):
+        start, end = (0, 0), (2, 2)
+        came_from, cost_so_far = astar(self.graph, start, end)
+        #path = reconstruct_path(came_from, start, end)
+        draw_exploration(start, end, came_from)
 
     def test_euclidean_distance(self):
         self.assertAlmostEqual(euclidean_distance((0, 0), (3, 4)), 5.0)

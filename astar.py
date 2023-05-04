@@ -1,18 +1,20 @@
 import sys
-import heapq
+from heapq import *
 from math import sqrt
+
+import draw_astar
 
 def euclidean_distance(a, b):
     return sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
 def astar(graph, start, end):
-    frontier = []
-    heapq.heappush(frontier, (0, start))
+    Q = []
+    heappush(Q, (0, start))
     came_from = {start: None}
     cost_so_far = {start: 0}
 
-    while frontier:
-        _, current = heapq.heappop(frontier)
+    while Q:
+        _, current = heappop(Q)
 
         if current == end:
             break
@@ -22,7 +24,7 @@ def astar(graph, start, end):
             if next not in cost_so_far or new_cost < cost_so_far[next]:
                 cost_so_far[next] = new_cost
                 priority = new_cost + euclidean_distance(end, next)
-                heapq.heappush(frontier, (priority, next))
+                heappush(Q, (priority, next))
                 came_from[next] = current
 
     return came_from, cost_so_far
@@ -59,6 +61,7 @@ def main():
 
     came_from, cost_so_far = astar(graph, start, end)
     path = reconstruct_path(came_from, start, end)
+    draw_astar.draw_exploration(start, end, came_from)
 
     print(f"Shortest path from {start} to {end} is:")
     print(" -> ".join(map(str, path)))
@@ -66,5 +69,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
