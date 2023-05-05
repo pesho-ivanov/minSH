@@ -1,6 +1,6 @@
 # Minimalistic A* with Seed heuristic
 
-This is a very small optimal global aligner (computes edit distance) that runs near-linearly for a limited error rate $\sim 1/k = 1/logn$. [`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) (~50 Python loc) runs A* with the admissible _seed heuristic (SH)_, which is precomputed in linear time (todo: rolling hash) and queired in constant time:
+This is a very small optimal global aligner (computes edit distance) that runs near-linearly for a limited error rate $\sim O(1/k) = O(1/logn)$. [`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) (~50 Python loc) runs A* with the admissible _seed heuristic (SH)_, which is precomputed in linear time (todo: rolling hash) and queired in constant time:
 
 ```Python
 def build_seed_heuristic(A, B, k):
