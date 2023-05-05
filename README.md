@@ -1,8 +1,6 @@
 # Minimalistic A* with Seed heuristic (minSH)
 
-minSH aligns sequences A and B optimally, i.e. computes the exact edit distance between them. It tries to be small, clean, interpretable and educational re-implementation of the recent aligning approach based on A* with _seed heuristic (SH)_. minSH runs near-linearly for a limited error rate $\sim O(1/k) = O(1/logn)$.
-
-[`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) (~50 loc) implements A* with seed heuristic $h_{seed}(i,j) = \Big| \big\\{ s \in Seeds_{\geq i} \mid  s \notin B \big\\} \Big|$:
+minSH aligns sequences A and B optimally, i.e. computes the exact edit distance between them. It tries to be small, clean, interpretable and educational re-implementation of the recent aligning approach based on A* with _seed heuristic (SH)_. minSH runs near-linearly for a limited error rate ~ O(1/k) = O(1/logn). [`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) (~50 loc) implements A* with seed heuristic $h_{seed}(i,j) = \Big| \big\\{ s \in Seeds_{\geq i} \mid  s \notin B \big\\} \Big|$:
 
 ```Python
 def build_seed_heuristic(A, B, k):
@@ -46,11 +44,11 @@ python astar.py A.fa B.fa
 
 [Detailed Publications on A* for alignment](https://pesho-ivanov.github.io/#A*%20for%20optimal%20sequence%20alignment)
 
-[AStarix](https://github.com/eth-sri/astarix) -- Semi-global seq-to-graph aligner:
-* [Ivanov et al., (RECOMB 2020)](https://link.springer.com/chapter/10.1007/978-3-030-45257-5_7) -- Introduces A* with a trie for semi-global.
-* [Ivanov et al., (RECOMB 2022)](https://www.biorxiv.org/content/10.1101/2021.11.05.467453) -- Introduces SH for read alignment on general graph references using trie.
+[AStarix](https://github.com/eth-sri/astarix) semi-global seq-to-graph aligner:
+* [Ivanov et al., (RECOMB 2020)](https://link.springer.com/chapter/10.1007/978-3-030-45257-5_7) &mdash; Introduces A* with a trie for semi-global.
+* [Ivanov et al., (RECOMB 2022)](https://www.biorxiv.org/content/10.1101/2021.11.05.467453) &mdash; Introduces SH for read alignment on general graph references using trie.
 
-[A*PA](https://github.com/RagnarGrootKoerkamp/astar-pairwise-aligner) -- Global seq-to-seq aligner:
-* [Groot Koerkamp and Ivanov (preprint 2023)](https://www.biorxiv.org/content/10.1101/2022.09.19.508631) Applies SH to global alignment (edit distance). Generalizes SH with chaining, inexact matches, gap costs (for higher error rates). Optimizes SH with pruning (for near-linear scaling with length), and A* with diagonal transition (for faster quadratic mode).
+[A*PA](https://github.com/RagnarGrootKoerkamp/astar-pairwise-aligner) global seq-to-seq aligner:
+* [Groot Koerkamp and Ivanov (preprint 2023)](https://www.biorxiv.org/content/10.1101/2022.09.19.508631) &mdash; Applies SH to global alignment (edit distance). Generalizes SH with chaining, inexact matches, gap costs (for higher error rates). Optimizes SH with pruning (for near-linear scaling with length), and A* with diagonal transition (for faster quadratic mode).
 
 [minGPT](https://github.com/karpathy/minGPT) -- Inspiration
