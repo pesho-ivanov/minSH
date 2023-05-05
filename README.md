@@ -2,7 +2,7 @@
 
 minSH aligns sequences A and B optimally, i.e. computes the exact edit distance between them. It tries to be small, clean, interpretable and educational re-implementation of the recent aligning approach based on A* with _seed heuristic (SH)_. minSH runs near-linearly for a limited error rate $\sim O(1/k) = O(1/logn)$.
 
-[`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) (~50 Python loc) contains A*, and the admissible seed heuristic $h_{seed}(i,j) = \Big| \big\\{ s \in Seeds_{\geq i} \mid  s \notin B \big\\} \Big|$:
+[`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) (~50 loc) implements A* with seed heuristic $h_{seed}(i,j) = \Big| \big\\{ s \in Seeds_{\geq i} \mid  s \notin B \big\\} \Big|$:
 
 ```Python
 def build_seed_heuristic(A, B, k):
