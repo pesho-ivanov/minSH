@@ -1,22 +1,29 @@
-# Minimalistic A* with Seed heuristic
+# Minimalistic A* with Seed heuristic (minSH)
 
-This is a very small optimal global aligner (computes edit distance) that runs near-linearly for a limited error rate $\sim O(1/k) = O(1/logn)$. [`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) (~50 Python loc) runs A* with the admissible _seed heuristic (SH)_, which is precomputed in linear time (todo: rolling hash) and queired in constant time:
+*minSH* tries to be small, clean, interpretable and educational Python implementations of the recent aligning approach based on A* with _seed heuristic (SH)_. This is a very small optimal global aligner (computes edit distance) that runs near-linearly for a limited error rate $\sim O(1/k) = O(1/logn)$. [`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) (~50 Python loc) runs A* with the admissible SH. The SH precomputation and query take 4 lines of code (the rest is a standard A*):
 
 ```Python
 def build_seed_heuristic(A, B, k):
     """Builds the admissible seed heuristic for A and B with k-mers."""
-    kmers = { B[i:i+k] for i in range(len(B)-k+1) }                 # O(nk), O(n) with rolling hash (Rabin-Karp)
-    seeds = [ A[i:i+k] for i in range(0, len(A)-k+1, k) ]           # O(n)   
-    is_seed_missing = [ s not in kmers for s in seeds ] + [False]*2 # O(n)
-    suffix_sum = np.cumsum(is_seed_missing[::-1])[::-1]             # O(n)
-    h_seed = lambda ij: suffix_sum[ceildiv(ij[0],k)]                # O(1)
-    return h_seed
+    
+    kmers = { B[i:i+k] for i in range(len(B)-k+1) }                 # O(nk): Index all kmers from B. O(n) with rolling hash
+    seeds = [ A[i:i+k] for i in range(0, len(A)-k+1, k) ]           # O(n): Split A into non-overlapping seeds of length k.
+    is_seed_missing = [ s not in kmers for s in seeds ] + [False]*2 # O(n): Is seed unseen in B, so >=1 edit must be made to align it.
+    suffix_sum = np.cumsum(is_seed_missing[::-1])[::-1]             # O(n): How many of the remaining seeds have to be edited
+    
+    return lambda ij: suffix_sum[ceildiv(ij[0],k)]                  # O(1): How many seeds starting after the current position i have to be edited?
+    
+h_seed = build_seed_heuristic(A, B, k=log|A|)
+A*(A, B, h_seed)                                                    # Standard A* algorithm on the alignment graph A x B
 ```
 
 Explaination:
 
 `astar.py` takes `k` and a file with two strings (`A` and `B`), and returns the
 exact edit distance `ed(A,B)` between them in case it is `ed < |A|/k` or `Too different` otherwise. It splits `A` into seeds of length `k` and find a shortest path from `(0,0)` to `(|A|, |B|)` using A* with SH `sh(i,j) = |{ s | s.start >= i and s not in B }|`. That's it. Or, in code:
+
+## Patches (TODO)
+* rolling hash: for linear time precomputation:
 
 ## Run
 
@@ -42,3 +49,5 @@ python astar.py A.fa B.fa
 
 [A*PA](https://github.com/RagnarGrootKoerkamp/astar-pairwise-aligner) -- Global seq-to-seq aligner:
 * [Groot Koerkamp and Ivanov (preprint 2023)](https://www.biorxiv.org/content/10.1101/2022.09.19.508631) Applies SH to global alignment (edit distance). Generalizes SH with chaining, inexact matches, gap costs (for higher error rates). Optimizes SH with pruning (for near-linear scaling with length), and A* with diagonal transition (for faster quadratic mode).
+
+[minGPT](https://github.com/karpathy/minGPT) -- Inspiration
