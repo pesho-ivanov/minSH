@@ -1,6 +1,6 @@
 # Minimalistic A* with Seed heuristic (minSH)
 
-*minSH* tries to be small, clean, interpretable and educational Python implementations of the recent aligning approach based on A* with _seed heuristic (SH)_. This is a very small optimal global aligner (computes edit distance) that runs near-linearly for a limited error rate $\sim O(1/k) = O(1/logn)$. [`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) (~50 Python loc) runs A* with the admissible SH. The SH precomputation and query take 4 lines of code (the rest is a standard A*):
+**minSH** tries to be small, clean, interpretable and educational re-implementation of the recent aligning approach based on A* with _seed heuristic (SH)_. It computes the exact edit distance between two sequences A and B and runs for near-linear time (with the sequence length) when the error rate is limited. [`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) (~50 Python loc) contains A*, and the admissible precomputation:
 
 ```Python
 def build_seed_heuristic(A, B, k):
@@ -19,11 +19,8 @@ A*(A, B, h_seed)                                                    # Standard A
 
 Explaination:
 
-`astar.py` takes `k` and a file with two strings (`A` and `B`), and returns the
-exact edit distance `ed(A,B)` between them in case it is `ed < |A|/k` or `Too different` otherwise. It splits `A` into seeds of length `k` and find a shortest path from `(0,0)` to `(|A|, |B|)` using A* with SH `sh(i,j) = |{ s | s.start >= i and s not in B }|`. That's it. Or, in code:
-
-## Patches (TODO)
-* rolling hash: for linear time precomputation:
+**minSH** is a small optimal global aligner (computes edit distance) that runs near-linearly for a limited error rate $\sim O(1/k) = O(1/logn)$.
+`astar.py` takes `k` and a file with two strings (`A` and `B`), and returns the exact edit distance `ed(A,B)` between them in case it is `ed < |A|/k` or `Too different` otherwise. It splits `A` into seeds of length `k` and find a shortest path from `(0,0)` to `(|A|, |B|)` using A* with SH `sh(i,j) = |{ s | s.start >= i and s not in B }|`.
 
 ## Run
 
@@ -38,6 +35,14 @@ Compute edit distance between two sequences:
 ```
 python astar.py A.fa B.fa
 ```
+
+## TODO
+* rolling hash: for linear time precomputation
+* pruning, using index trees
+* visualization of the alignment (png, gif)
+* interactivity for adding patches
+* report stats
+* benchmark
 
 ## Related work
 
