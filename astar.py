@@ -1,26 +1,29 @@
 import sys
-from heapq import *
-from math import sqrt
+from heapq import *                     # Heap for the priority queue
+import numpy as np
+from itertools import accumulate        # To compute sum[i] = num[i] + sum[i+1]
 
 from utils import *
 
-def euclidean_distance(a, b):
-    return sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
-
-def next_states(A, B, curr):
+def next_states(curr, target):
+    """Generates up to three states that follow curr (right, down, diagonal) but not after target."""
     next_states = []
-    if curr[0] < len(A): next_states.append((curr[0] + 1, curr[1]))
-    if curr[1] < len(B): next_states.append((curr[0], curr[1] + 1))
-    if curr[0] < len(A) and \
-       curr[1] < len(B): next_states.append((curr[0] + 1, curr[1] + 1))
+    if curr[0] < target[0]: next_states.append((curr[0] + 1, curr[1]))      # Insertion
+    if curr[1] < target[1]: next_states.append((curr[0], curr[1] + 1))      # Deletion
+    if curr[0] < target[0] and \
+       curr[1] < target[1]: next_states.append((curr[0] + 1, curr[1] + 1))  # Match or mismatch
     return next_states
 
-def edge_cost(A, B, curr, next):
+def edit_cost(curr, next, A, B):
+    """Computes the cost an edit: 0 for match, 1 otherwise."""
     if curr[0]+1 == next[0] and curr[1]+1 == next[1] and A[curr[0]] == B[curr[1]]:
-        return 0
-    return 1
+        return 0    # Match
+    return 1        # Mismatch or gap
 
-def align():
+def align(A, B, h):
+    start = (0, 0)              # Start state
+    target = (len(A), len(B))   # Target state
+    
     Q = []                      # Priority queue with candidate states
     heappush(Q, (0, start))     # Push start state with priority 0
     prev = {start: None}        # Keep track of how we got to each state
@@ -32,15 +35,38 @@ def align():
         if curr == target:
             break
 
-        for next in next_states(A, B, curr):
-            new_cost = g[curr] + edge_cost(A, B, curr, next)
-            if next not in g or new_cost < g[next]:
-                g[next] = new_cost
-                priority = new_cost + euclidean_distance(target, next)
+        for next in next_states(curr, target):
+            new_cost_to_next = g[curr] + edit_cost(curr, next, A, B)
+            if next not in g or new_cost_to_next < g[next]:
+                g[next] = new_cost_to_next
+                priority = new_cost_to_next + h(next)
                 heappush(Q, (priority, next))
-                prev[next] = curr
+                prev[next] = curr                   # To reconstruct a best alignment
 
-    return prev, g
+    return g, prev
+
+def h_dijkstra(u):
+    return 0
+
+def precompute_seed_heuristic(A, B, k):
+    """Precomputes the seed heuristic for A and B with k-mers."""
+
+    kmers = { B[i:i+k] for i in range(len(B)-k+1) }          # O(nk), O(n) with rolling hash (Rabin-Karp)
+    print('B:', B)
+    print('kmers:', kmers)
+    
+    seeds = [ A[i:i+k] for i in range(0, len(A)-k+1, k) ]    # O(n)
+    print('A:', A)
+    print('seeds:', seeds)
+    
+    is_seed_missing = [ s not in kmers for s in seeds ] + [False]      # O(n)
+    print('is_seed_missing:', is_seed_missing)
+    
+    suffix_sum = np.cumsum(is_seed_missing[::-1])[::-1]      # O(n)
+    print('suffix_sum:', suffix_sum)
+
+    h_seed = lambda ij: suffix_sum[ceildiv(ij[0],k)]         # O(1)
+    return h_seed
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
@@ -49,14 +75,9 @@ if __name__ == "__main__":
 
     A, B = map(read_fasta_file, sys.argv[1,2])
     k = 14
-    start = (0, 0)
     target = (len(A), len(B))
 
     #precompute_SH(A, B, k)
-    came_from, cost_so_far = align()
-    path = reconstruct_path(came_from, start, target)
-    draw_exploration(start, target, came_from)
-
-    print(f"Shortest path from {start} to {target} is:")
-    print(" -> ".join(map(str, path)))
-    print(f"Total cost: {cost_so_far[target]}")
+    g, prev = align(A, B)
+    #path = reconstruct_path(prev, target)
+    #draw_exploration(target, prev)

@@ -1,6 +1,9 @@
 import random
 import matplotlib.pyplot as plt
 
+def ceildiv(a, b):
+    return -(a // -b)
+
 def read_fasta_file(file_path):
     with open(file_path, "r") as fasta_file:
         # Skip the description line
@@ -22,7 +25,7 @@ def save_fasta_file(file_name, description, sequence, line_length=50):
         fasta_file.write(f"> {description}\n")
         for i in range(0, len(sequence), line_length):
             fasta_file.write(sequence[i:i + line_length] + "\n")
-        
+
 def reconstruct_path(came_from, end):
     path = []
     node = end
@@ -32,7 +35,8 @@ def reconstruct_path(came_from, end):
     path.reverse()
     return path
     
-def draw_exploration(start, end, came_from):
+def draw_exploration(end, came_from):
+    start = (0, 0)
     fig, ax = plt.subplots()
     
     # Draw grid lines
@@ -55,3 +59,10 @@ def draw_exploration(start, end, came_from):
 
     plt.savefig('a_star_exploration.png', dpi=300)
     plt.show()
+
+def print_stats(A, B, g, prev):
+    target = (len(A), len(B))
+    print(f"Aligning sequences with len(A)={len(A)} and len(B)={len(B)}:")
+    #print(" -> ".join(map(str, path)))
+    print(f"Edit distance: {g[target]}")
+    print(f"Explored: {len(g)}")
