@@ -37,16 +37,17 @@ class TestAStar(unittest.TestCase):
         self.target = (len(self.A), len(self.B))
         
     def test_edit_distance_using_dijkstra(self):
-        g, prev = align(self.A, self.B, h_dijkstra)
+        h_dijkstra = lambda ij: 0
+        g = align(self.A, self.B, h_dijkstra)
         self.assertEqual(g[self.target], 3)
-        print_stats(self.A, self.B, g, prev)
+        print_stats(self.A, self.B, g)
 
     def test_edit_distance_using_astar_with_seed_heuristic(self):
         k = 3
         h_seed = build_seed_heuristic(self.A, self.B, k)
-        g, prev = align(self.A, self.B, h_seed)
+        g = align(self.A, self.B, h_seed)
         self.assertEqual(g[self.target], 3)
-        print_stats(self.A, self.B, g, prev)
+        print_stats(self.A, self.B, g)
 
         #path = reconstruct_path(prev, start, end)
         #self.assertEqual(path, [(0, 0), (1, 0), (1, 1), (1, 2), (2, 2)])
