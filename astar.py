@@ -1,8 +1,6 @@
 import sys
-from heapq import *                     # Heap for the priority queue
-import numpy as np
-from itertools import accumulate        # To compute sum[i] = num[i] + sum[i+1]
-
+from heapq import *     # Heap for the priority queue
+import numpy as np      # To compute sum[i] = num[i] + sum[i+1]
 from utils import *
 
 def next_states(curr, target):
@@ -41,14 +39,14 @@ def align(A, B, h):
                 g[next] = new_cost_to_next
                 priority = new_cost_to_next + h(next)
                 heappush(Q, (priority, next))
-                prev[next] = curr                   # To reconstruct a best alignment
+                prev[next] = curr
 
     return g, prev
 
 def h_dijkstra(u):
     return 0
 
-def precompute_seed_heuristic(A, B, k):
+def build_seed_heuristic(A, B, k):
     """Precomputes the seed heuristic for A and B with k-mers."""
 
     kmers = { B[i:i+k] for i in range(len(B)-k+1) }          # O(nk), O(n) with rolling hash (Rabin-Karp)
@@ -77,7 +75,6 @@ if __name__ == "__main__":
     k = 14
     target = (len(A), len(B))
 
-    #precompute_SH(A, B, k)
-    g, prev = align(A, B)
-    #path = reconstruct_path(prev, target)
-    #draw_exploration(target, prev)
+    h_seed = build_seed_heuristic(A, B, k)
+    g, prev = align(A, B, h_seed)
+    print_stats(A, B, g, prev)

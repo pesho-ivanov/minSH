@@ -43,7 +43,7 @@ class TestAStar(unittest.TestCase):
 
     def test_edit_distance_using_astar_with_seed_heuristic(self):
         k = 3
-        h_seed = precompute_seed_heuristic(self.A, self.B, k)
+        h_seed = build_seed_heuristic(self.A, self.B, k)
         g, prev = align(self.A, self.B, h_seed)
         self.assertEqual(g[self.target], 3)
         print_stats(self.A, self.B, g, prev)
