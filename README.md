@@ -57,3 +57,7 @@ Presentation:
 
 [A*PA](https://github.com/RagnarGrootKoerkamp/astar-pairwise-aligner) global seq-to-seq aligner:
 * [Groot Koerkamp and Ivanov (preprint 2023)](https://www.biorxiv.org/content/10.1101/2022.09.19.508631) &mdash; Applies SH to global alignment (edit distance). Generalizes SH with chaining, inexact matches, gap costs (for higher error rates). Optimizes SH with pruning (for near-linear scaling with length), and A* with diagonal transition (for faster quadratic mode).
+
+## Licensing
+
+Licensed under the Mozilla Public License, Version 2.0. In short, you are free to use and abuse, but give it back to the community.
