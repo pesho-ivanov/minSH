@@ -6,7 +6,7 @@ minSH aligns sequences A and B optimally, i.e. computes the exact edit distance 
 def build_seed_heuristic(A, B, k):
     """Builds the admissible seed heuristic for A and B with k-mers."""
     
-    kmers = { B[i:i+k] for i in range(len(B)-k+1) }                 # O(nk): Index all kmers from B. O(n) with rolling hash
+    kmers = { B[j:j+k] for j in range(len(B)-k+1) }                 # O(nk): Index all kmers from B. O(n) with rolling hash
     seeds = [ A[i:i+k] for i in range(0, len(A)-k+1, k) ]           # O(n): Split A into non-overlapping seeds of length k.
     is_seed_missing = [ s not in kmers for s in seeds ]             # O(n): Is seed unseen in B, so >=1 edit must be made to align it.
     suffix_sum = np.cumsum(is_seed_missing[::-1])[::-1]             # O(n): How many of the remaining seeds have to be edited
