@@ -11,7 +11,7 @@ def build_seed_heuristic(A, B, k):
     seeds = [ A[i:i+k] for i in range(0, len(A)-k+1, k) ]           # O(n)   
     is_seed_missing = [ s not in kmers for s in seeds ] + [False]*2 # O(n)
     suffix_sum = np.cumsum(is_seed_missing[::-1])[::-1]             # O(n)
-    h_seed = lambda ij: suffix_sum[ceildiv(ij[0],k)]                # O(1)
+    h_seed = lambda ij, k=k: suffix_sum[ ceildiv(ij[0], k) ]        # O(1)
     return h_seed
 
 def next_states_with_cost(u, A, B):
@@ -43,11 +43,12 @@ def align(A, B, h):
                 heappush(Q, (priority, v))                  # Push v with new priority
 
 if __name__ == "__main__":
-    if len(sys.argv) == 3:
-        print("Usage: python astar.py <a.fa> <b.fa>")
+    if len(sys.argv) != 3:
+        print("Usage: python astar.py <A.fa> <A.fa>")
     else:
-        A, B = map(read_fasta_file, sys.argv[1:3])
-        k = math.log(len(A), 4)
+        A, B   = map(read_fasta_file, sys.argv[1:3])
+        k      = math.ceil(math.log(len(A), 4))
         h_seed = build_seed_heuristic(A, B, k)
-        g, prev = align(A, B, h_seed)
-        print("Edit distance: ", len(g[(len(A), len(B))]))
+        g      = align(A, B, h_seed)
+        
+        print_stats(A, B, k, g)

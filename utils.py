@@ -56,10 +56,8 @@ def draw_exploration(target):
     plt.savefig('a_star_exploration.png', dpi=300)
     plt.show()
 
-def print_stats(A, B, g):
+def print_stats(A, B, k, g):
     target = (len(A), len(B))
-    print(f"Aligning sequences with len(A)={len(A)}:")
-    #print(" -> ".join(map(str, path)))
-    print(f"Error rate: {g[target] / len(A)}")
-    #print(f"Explored: {len(g)}")
-    print(f"Explored band: {len(g) / len(A)}")
+    print(f"Aligning sequences with len(A)={len(A)}, k={k}:")
+    print(f"Error rate: {g[target] / len(A) :.2f}")
+    print(f"Explored band: {len(g) / len(A) :.2f}")

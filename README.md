@@ -11,7 +11,7 @@ def build_seed_heuristic(A, B, k):
     is_seed_missing = [ s not in kmers for s in seeds ]             # O(n): Is seed unseen in B, so >=1 edit must be made to align it.
     suffix_sum = np.cumsum(is_seed_missing[::-1])[::-1]             # O(n): How many of the remaining seeds have to be edited
     
-    return lambda ij: suffix_sum[ceildiv(ij[0],k)]                  # O(1): How many seeds starting after the current position i have to be edited?
+    return lambda ij, k=k: suffix_sum[ ceildiv(ij[0], k) ]          # O(1): How many seeds starting after the current position i have to be edited?
 ```
 
 Next, we just use the seed heuristic for a starndard A* on the alignment graph `A x B`:
