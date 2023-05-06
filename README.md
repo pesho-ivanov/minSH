@@ -15,7 +15,7 @@ def build_seed_heuristic(A, B, k):
 ```
 
 Next, we just use the seed heuristic for a starndard A* on the alignment graph `A x B`:
-```
+```Python
 h_seed = build_seed_heuristic(A, B, k=log(len(A)))
 astar(A, B, h_seed)
 ```
