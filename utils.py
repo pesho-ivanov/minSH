@@ -1,6 +1,8 @@
 import random
 import matplotlib.pyplot as plt
 
+nucleotides = 'ACGT'
+
 def ceildiv(a, b):
     return -(a // -b)
 
@@ -13,8 +15,20 @@ def read_fasta_file(file_path):
     return sequence
 
 def generate_random_sequence(length):
-    nucleotides = ['A', 'T', 'C', 'G']
     return ''.join(random.choice(nucleotides) for _ in range(length))
+
+def apply_errors(A, e):
+    B = ''
+    for i in range(len(A)):
+        if random.random() > e:
+            B += A[i]                               # No error
+        elif random.random() < 1/3:
+            B += random.choice(nucleotides)         # Substitution
+        elif random.random() < 1/2:
+            B += random.choice(nucleotides) + A[i]  # Insertion
+        else:
+            B += ''                                 # Deletion
+    return B
 
 def save_fasta_file(file_name, description, sequence, line_length=50):
     with open(file_name, "w") as fasta_file:
@@ -44,7 +58,8 @@ def draw_exploration(target):
 
 def print_stats(A, B, g):
     target = (len(A), len(B))
-    print(f"Aligning sequences with len(A)={len(A)} and len(B)={len(B)}:")
+    print(f"Aligning sequences with len(A)={len(A)}:")
     #print(" -> ".join(map(str, path)))
-    print(f"Edit distance: {g[target]}")
-    print(f"Explored: {len(g)}")
+    print(f"Error rate: {g[target] / len(A)}")
+    #print(f"Explored: {len(g)}")
+    print(f"Explored band: {len(g) / len(A)}")

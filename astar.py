@@ -3,9 +3,7 @@ import numpy as np      # To compute sum[i] = num[i] + sum[i+1]
 from heapq import *     # Heap for the priority queue
 from utils import *
 
-#import rolling
-#roll = rolling.PolynomialHash("ACCAGAT", 3)
-#print(list(roll))
+h_dijkstra = lambda ij: 0   # Dijkstra's dummy heuristic
 
 def build_seed_heuristic(A, B, k):
     """Builds the admissible seed heuristic for A and B with k-mers."""
@@ -21,7 +19,7 @@ def next_states_with_cost(u, A, B):
     for match, 1 otherwise."""
     return [ ((u[0] + 1, u[1]    ), 1),
              ((u[0],     u[1] + 1), 1),
-             ((u[0] + 1, u[1] + 1), A[u[0]] == B[u[1]]) ]
+             ((u[0] + 1, u[1] + 1), A[u[0]] != B[u[1]]) ]
 
 def align(A, B, h):
     """Standard A* on the grid A x B using a given heuristic h."""
