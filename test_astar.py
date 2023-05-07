@@ -58,39 +58,21 @@ class TestAStar(unittest.TestCase):
         k = math.ceil(math.log(len(A), 4))
         h_seed = build_seedh(A, B, k)
         g = align(A, B, h_seed)
-        print_stats(A, B, k, g)
-
+        #print_stats(A, B, k, g)
         #self.assertEqual(g[target], editdistance.eval(A, B))
 
     def test_astar_with_seedh_pruning(self):
         n = 1000000
         A = ''.join(random.choices('ACGT', k=n))
-        B = apply_errors(A, 0.01)
+        B = apply_errors(A, 0.068)   # ~6% edit distance
 
+        # k = 1/error_rate ?
         target = (len(A), len(B))
         k = math.ceil(math.log(len(A), 4))
         h_seed_prune = build_seedh_for_pruning(A, B, k)
         g_prune = align(A, B, h_seed_prune)
         print_stats(A, B, k, g_prune)
 #        self.assertEqual(g_prune[target], editdistance.eval(A, B))
-
-        # h_seed = build_seed_heuristic(A, B, k)
-        # g = align(A, B, h_seed)
-        # print_stats(A, B, k, g)
-        # self.assertEqual(len(g_prune), len(g))
-
-    #path = reconstruct_path(prev, start, end)
-    #self.assertEqual(path, [(0, 0), (1, 0), (1, 1), (1, 2), (2, 2)])
-
-    # def test_astar_draw(self):
-    #     start, end = (0, 0), (2, 2)
-    #     prev, cost_so_far = astar(start, end)
-    #     path = reconstruct_path(prev, start, end)
-    #     draw_exploration(start, end, prev)
-
-    # def test_euclidean_distance(self):
-    #     self.assertAlmostEqual(euclidean_distance((0, 0), (3, 4)), 5.0)
-    #     self.assertAlmostEqual(euclidean_distance((1, 1), (1, 1)), 0.0)
 
 if __name__ == "__main__":
     unittest.main()
