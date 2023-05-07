@@ -18,9 +18,9 @@ def build_seedh(A, B, k):
 
 def build_seedh_for_pruning(A, B, k):
     S = [ A[i:i+k] for i in range(0, len(A)-k+1, k) ]    
-    K = defaultdict(list); [K[B[j:j+k]].append(j) for j in range(len(B) - k + 1)]
-    M = [defaultdict(int)] * (len(S)+2); [ [M[s].append(j) for j in K[s]] for s, seed in enumerate(S) ]
-    misses = FenwickTree(len(S)+2); misses.init([not M[s] for s in range(len(S))] + [False, False])
+    K = defaultdict(set); [ K[B[j:j+k]].add(j) for j in range(len(B) - k + 1) ]
+    M = [ K[s] for s in range(len(S)) ]
+    misses = FenwickTree(len(S)+2); misses.init([not js for js in M] + [0]*2)
     
     return lambda ij, k=k, M=M, misses=misses: \
         misses.range_sum( ceildiv(ij[0], k), len(misses) )
