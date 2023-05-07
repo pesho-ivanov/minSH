@@ -10,28 +10,19 @@ h_dijkstra = lambda ij: 0   # Dijkstra's dummy heuristic
 
 def build_seedh(A, B, k):
     """Builds the admissible seed heuristic for A and B with k-mers."""
-    kmers = { B[j:j+k] for j in range(len(B)-k+1) }                 # O(nk), O(n) with rolling hash (Rabin-Karp)
     seeds = [ A[i:i+k] for i in range(0, len(A)-k+1, k) ]           # O(n)   
+    kmers = { B[j:j+k] for j in range(len(B)-k+1) }                 # O(nk), O(n) with rolling hash (Rabin-Karp)
     is_seed_missing = [ s not in kmers for s in seeds ] + [False]*2 # O(n)
     suffix_sum = np.cumsum(is_seed_missing[::-1])[::-1]             # O(n)
     return lambda ij, k=k: suffix_sum[ ceildiv(ij[0], k) ]          # O(1)
 
 def build_seedh_for_pruning(A, B, k):
-    seeds = [ A[i:i+k] for i in range(0, len(A)-k+1, k) ]
-    kmers = defaultdict(list)
-    matches = [ defaultdict(int) ] * (len(seeds) + 2)
+    S = [ A[i:i+k] for i in range(0, len(A)-k+1, k) ]    
+    K = defaultdict(list); [K[B[j:j+k]].append(j) for j in range(len(B) - k + 1)]
+    M = [defaultdict(int)] * (len(S)+2); [ [M[s].append(j) for j in K[s]] for s, seed in enumerate(S) ]
+    misses = FenwickTree(len(S)+2); misses.init([not M[s] for s in range(len(S))] + [False, False])
     
-    for j in range(len(B) - k + 1): kmers[B[j:j+k]].append(j)
-    #matches = { (s, j) for s, seed in enumerate(seeds) for j in kmers[seed] }
-    
-    for s, seed in enumerate(seeds):
-        for j in kmers[s]:
-            matches[s].append(j)
-
-    misses = FenwickTree(len(seeds)+2)
-    misses.init([not matches[s] for s, seed in enumerate(seeds)] + [False, False])
-    
-    return lambda ij, k=k, matches=matches, misses=misses: \
+    return lambda ij, k=k, M=M, misses=misses: \
         misses.range_sum( ceildiv(ij[0], k), len(misses) )
 
 def next_states_with_cost(u, A, B):
@@ -55,13 +46,13 @@ def align(A, B, h):
         if u == target: return g                            # Return cost to target
         if u[0] > target[0] or u[1] > target[1]: continue   # Skip states after target
         
-        if hasattr(h, "misses"):
-            if not u[0] % h.k:  # if in the beginning of a seed
+        if hasattr(h, "misses"):                # If the heuristic supports pruning
+            if not u[0] % h.k:                  # If expanding at the beginning of a seed
                 s = u[0] // h.k
-                if u[1] in h.matches[s]:
-                    h.matches.remove(s, u[1])
-                    assert(len(h.matches[s]) >= 0)
-                    if not h.matches[s]:
+                if u[1] in h.M[s]:              # If the expanded state is a beginning of a match
+                    h.M.remove(s, u[1])         # Remove match from M
+                    assert(len(h.M[s]) >= 0)
+                    if not h.M[s]:              # If no more matches for this seed, then increase the misses
                         assert(not h.misses[s])
                         h.misses.add(s, +1)
 

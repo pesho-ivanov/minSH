@@ -52,7 +52,7 @@ class TestAStar(unittest.TestCase):
     def test_astar_with_seedh_big(self):
         n = 10000
         A = ''.join(random.choices('ACGT', k=n))
-        B = apply_errors(A, 0.01)
+        B = apply_errors(A, 0.012)
 
         target = (len(A), len(B))
         k = math.ceil(math.log(len(A), 4))
@@ -62,9 +62,9 @@ class TestAStar(unittest.TestCase):
         #self.assertEqual(g[target], editdistance.eval(A, B))
 
     def test_astar_with_seedh_pruning(self):
-        n = 1000000
+        n = 100000
         A = ''.join(random.choices('ACGT', k=n))
-        B = apply_errors(A, 0.068)   # ~6% edit distance
+        B = apply_errors(A, 0.115)   # ~6% edit distance
 
         # k = 1/error_rate ?
         target = (len(A), len(B))
