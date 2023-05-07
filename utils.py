@@ -59,5 +59,5 @@ def draw_exploration(target):
 def print_stats(A, B, k, g):
     target = (len(A), len(B))
     print(f"Aligning sequences with len(A)={len(A)}, k={k}:")
-    print(f"Error rate: {g[target] / len(A) :.2f}")
+    print(f"Error rate: {100 * g[target] / len(A) :.2f}%")
     print(f"Explored band: {len(g) / len(A) :.2f}")

@@ -14,8 +14,7 @@ def build_seedh(A, B, k):
     seeds = [ A[i:i+k] for i in range(0, len(A)-k+1, k) ]           # O(n)   
     is_seed_missing = [ s not in kmers for s in seeds ] + [False]*2 # O(n)
     suffix_sum = np.cumsum(is_seed_missing[::-1])[::-1]             # O(n)
-    h_seed = lambda ij, k=k: suffix_sum[ ceildiv(ij[0], k) ]        # O(1)
-    return h_seed
+    return lambda ij, k=k: suffix_sum[ ceildiv(ij[0], k) ]          # O(1)
 
 def build_seedh_for_pruning(A, B, k):
     seeds = [ A[i:i+k] for i in range(0, len(A)-k+1, k) ]
@@ -32,11 +31,8 @@ def build_seedh_for_pruning(A, B, k):
     misses = FenwickTree(len(seeds)+2)
     misses.init([not matches[s] for s, seed in enumerate(seeds)] + [False, False])
     
-    h = lambda ij: h.misses.range_sum( ceildiv(ij[0], h.k), len(h.misses) )
-    h.k = k
-    h.matches = matches
-    h.misses = misses
-    return h
+    return lambda ij, k=k, matches=matches, misses=misses: \
+        misses.range_sum( ceildiv(ij[0], k), len(misses) )
 
 def next_states_with_cost(u, A, B):
     """Generates three states following curr (right, down, diagonal) with cost 0
