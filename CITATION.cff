@@ -5,7 +5,7 @@ authors:
   given-names: "Pesho"
   orcid: 'https://orcid.org/0000-0002-8119-3849'
   email: ivanov@pesho.info
-title: "minSH"
+title: "minSH: Minimal re-implementation of the A* with seed heuristic"
 version: 1.0.0
 date-released: 2023-06-05
 url: "https://github.com/pesho-ivanov/minSH"
