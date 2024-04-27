@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum
 from dataclasses import dataclass
 from itertools import product
 from typing import Dict, List, Literal, Optional
@@ -12,16 +12,15 @@ import fire
 import pandas as pd
 from tqdm import tqdm
 import numpy as np
-from stringzilla import File, Str
 
 from astar import h_dijkstra, align, build_seedh, build_seedh_for_pruning
 
 
 class AlgorithmType(Enum):
-    WAGNER_FISCHER = auto()
-    DIJKSTRA = auto()
-    SEED = auto()
-    SEED_PRUNING = auto()
+    WAGNER_FISCHER = "Wagner-Fischer"
+    DIJKSTRA = "Dijkstra"
+    SEED = "Seed"
+    SEED_PRUNING = "Seed Pruning"
 
 
 @dataclass
@@ -126,7 +125,9 @@ def main(
             random.sample(dataset_tokenized, jobs) if jobs else dataset_tokenized
         )
         strings_pairs = (
-            list(zip(strings_a, strings_b)) if jobs else list(product(strings_a, strings_b))
+            list(zip(strings_a, strings_b))
+            if jobs
+            else list(product(strings_a, strings_b))
         )
 
         # Run the baseline algo, aggregating all the results for the Wagner Fisher
@@ -183,9 +184,22 @@ def main(
                     break
 
         # Print the results, save every result in a separate `.csv`
+        aggregated_results = []
         for algo, results in results_per_algo.items():
-            df = pd.DataFrame(results)
-            df.to_csv(f"{dataset}_{algo.name}.csv", index=False)
+            for result in results:
+                aggregated_results.append(
+                    {
+                        "Algorithm": algo.value,
+                        "Preprocessing Time": result.preprocessing_time,
+                        "Run Time": result.run_time,
+                        "Comparisons": result.comparisons,
+                        "Distance": result.distance,
+                        "Length A": result.length_a,
+                        "Length B": result.length_b,
+                    }
+                )
+        df = pd.DataFrame(aggregated_results)
+        df.to_csv(f"{dataset}.csv", index=False)
 
 
 if __name__ == "__main__":
