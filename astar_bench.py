@@ -1,7 +1,8 @@
 from enum import Enum, auto
 from dataclasses import dataclass
-from typing import Union, Dict, List
+from typing import Dict, List
 from time import perf_counter
+from collections import defaultdict
 import math
 
 import numpy as np
@@ -29,6 +30,7 @@ class BenchmarkResult:
     preprocessing_time: float
     run_time: float
     comparisons: int
+    distance: int
     length_a: int
     length_b: int
 
@@ -86,7 +88,7 @@ if __name__ == "__main__":
 
     for dataset in datasets:
         # Prepare a contain to assemble the results for the current dataset
-        results_per_algo: Dict[AlgorithmType, List[BenchmarkResult]] = {}
+        results_per_algo: Dict[AlgorithmType, List[BenchmarkResult]] = defaultdict(list)
 
         # Load the dataset and split it into whitespace or newline separated strings
         dataset_content = Str(File(dataset))
@@ -97,19 +99,20 @@ if __name__ == "__main__":
         )
 
         # Random sample pairs from strings
-        strings_a = dataset_content.sample(batch_size)
-        strings_b = dataset_content.sample(batch_size)
+        strings_a = strings.sample(batch_size)
+        strings_b = strings.sample(batch_size)
 
         # Run the baseline algo, aggregating all the results for the Wagner Fisher
         for a, b in zip(strings_a, strings_b):
             start_time = perf_counter()
-            matrix_wf, distance_wf, comparisons_wf = wagner_fisher(a, b)
+            result = wagner_fisher(a, b)
             end_time = perf_counter()
             results_per_algo[AlgorithmType.WAGNER_FISCHER].append(
                 BenchmarkResult(
                     preprocessing_time=0,
                     run_time=end_time - start_time,
-                    comparisons=comparisons_wf,
+                    comparisons=result.comparisons,
+                    distance=result.distance,
                     length_a=len(a),
                     length_b=len(b),
                 )
@@ -131,6 +134,7 @@ if __name__ == "__main__":
                         preprocessing_time=0,  # TODO: Measure preprocessing time?
                         run_time=end_time - start_time,
                         comparisons=comparisons,
+                        distance=distance,
                         length_a=len(a),
                         length_b=len(b),
                     )
