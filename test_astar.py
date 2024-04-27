@@ -6,6 +6,7 @@ import editdistance
 from astar import *
 from utils import *
 
+
 class TestFastaFunctions(unittest.TestCase):
     def setUp(self):
         self.sequence_length = 100
@@ -32,13 +33,14 @@ class TestFastaFunctions(unittest.TestCase):
                 sequence += line.strip()
             self.assertEqual(self.random_sequence, sequence)
 
+
 class TestAStar(unittest.TestCase):
     def setUp(self):
         random.seed(42)
-        self.A = 'ACCAGTGCCATT'
-        self.B = 'ACTAGTGGCACT'
+        self.A = "ACCAGTGCCATT"
+        self.B = "ACTAGTGGCACT"
         self.target = (len(self.A), len(self.B))
-        
+
     def test_dijkstra(self):
         g = align(self.A, self.B, h_dijkstra)
         self.assertEqual(g[self.target], editdistance.eval(self.A, self.B))
@@ -51,20 +53,20 @@ class TestAStar(unittest.TestCase):
 
     def test_astar_with_seedh_big(self):
         n = 10000
-        A = ''.join(random.choices('ACGT', k=n))
+        A = "".join(random.choices("ACGT", k=n))
         B = apply_errors(A, 0.012)
 
         target = (len(A), len(B))
         k = math.ceil(math.log(len(A), 4))
         h_seed = build_seedh(A, B, k)
         g = align(A, B, h_seed)
-        #print_stats(A, B, k, g)
-        #self.assertEqual(g[target], editdistance.eval(A, B))
+        # print_stats(A, B, k, g)
+        # self.assertEqual(g[target], editdistance.eval(A, B))
 
     def test_astar_with_seedh_pruning(self):
         n = 100000
-        A = ''.join(random.choices('ACGT', k=n))
-        B = apply_errors(A, 0.115)   # ~6% edit distance
+        A = "".join(random.choices("ACGT", k=n))
+        B = apply_errors(A, 0.115)  # ~6% edit distance
 
         # k = 1/error_rate ?
         target = (len(A), len(B))
@@ -72,6 +74,8 @@ class TestAStar(unittest.TestCase):
         h_seed_prune = build_seedh_for_pruning(A, B, k)
         g_prune = align(A, B, h_seed_prune)
         print_stats(A, B, k, g_prune)
+
+
 #        self.assertEqual(g_prune[target], editdistance.eval(A, B))
 
 if __name__ == "__main__":
