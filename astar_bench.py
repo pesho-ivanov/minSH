@@ -1,10 +1,16 @@
 from enum import Enum, auto
 from dataclasses import dataclass
-from typing import Dict, List
+from itertools import product
+from typing import Dict, List, Literal, Optional
 from time import perf_counter
 from collections import defaultdict
+from glob import glob
 import math
+import random
 
+import fire
+import pandas as pd
+from tqdm import tqdm
 import numpy as np
 from stringzilla import File, Str
 
@@ -75,35 +81,58 @@ def wrapped_seed_prune(A, B):
     return build_seedh_for_pruning(A, B, k)
 
 
-if __name__ == "__main__":
+def main(
+    path: str,
+    split: Literal["line", "whitespace"] = "line",
+    jobs: Optional[int] = None,
+    max_time: Optional[float] = None,
+):
+    """Benchmarking script for the A* algorithm with different heuristics.
 
-    tokenization = "line"
-    batch_size = 100
+    :param path:    Path to the newline- or whitespace-delimited dataset file, or a GLOB pattern like `data/*.txt`
+                    if you want to benchmark multiple datasets.
+    :param split:   Tokenization method to split the dataset into strings. Either "line" or "whitespace".
+    :param jobs:    Number of parallel string comparisons to perform. If not specified, all strings possible
+                    pairs of strings from files will be evaluates.
 
-    datasets = [
-        "data/enwik9.txt",
-        "data/leipzig1M.txt",
-        "data/xlsum.csv",
-    ]
+    """
+    assert split in [
+        "line",
+        "whitespace",
+    ], "Invalid split method. Use 'line' or 'whitespace'."
+    datasets = glob(path) if "*" in path else [path]
+    max_time = float(max_time) if max_time else None
 
     for dataset in datasets:
+        print(f"- Running dataset: {dataset}")
+
         # Prepare a contain to assemble the results for the current dataset
         results_per_algo: Dict[AlgorithmType, List[BenchmarkResult]] = defaultdict(list)
 
         # Load the dataset and split it into whitespace or newline separated strings
-        dataset_content = Str(File(dataset))
-        strings = (
-            dataset_content.splitlines()
-            if tokenization == "line"
-            else dataset_content.split()
+        # > dataset_content = Str(File(dataset)) faster
+        with open(dataset, "r") as f:
+            dataset_content = f.read()
+        dataset_tokenized = (
+            dataset_content.splitlines() if split == "line" else dataset_content.split()
         )
+        dataset_tokenized = [s for s in dataset_tokenized if len(s) > 5]
 
         # Random sample pairs from strings
-        strings_a = strings.sample(batch_size)
-        strings_b = strings.sample(batch_size)
+        strings_a = (
+            random.sample(dataset_tokenized, jobs) if jobs else dataset_tokenized
+        )
+        strings_b = (
+            random.sample(dataset_tokenized, jobs) if jobs else dataset_tokenized
+        )
+        strings_pairs = (
+            zip(strings_a, strings_b) if jobs else product(strings_a, strings_b)
+        )
 
         # Run the baseline algo, aggregating all the results for the Wagner Fisher
-        for a, b in zip(strings_a, strings_b):
+        print(f"-- Running algorithm: Wagner-Fisher")
+        algo_run_time = 0
+        for a, b in strings_pairs:
             start_time = perf_counter()
             result = wagner_fisher(a, b)
             end_time = perf_counter()
@@ -118,20 +147,28 @@ if __name__ == "__main__":
                 )
             )
 
+            # Don't waste too much time on bad algos ;)
+            algo_run_time += end_time - start_time
+            if max_time and algo_run_time > max_time:
+                break
+
         for heursitic_generator, huristic_name in [
             (wrapped_dijkstra, AlgorithmType.DIJKSTRA),
             (wrapped_seed, AlgorithmType.SEED),
             (wrapped_seed_prune, AlgorithmType.SEED_PRUNING),
         ]:
+            print(f"-- Running algorithm: {huristic_name}")
+
+            algo_run_time = 0
             for a, b in zip(strings_a, strings_b):
                 prep_time = perf_counter()
                 heuristic = heursitic_generator(a, b)
                 start_time = perf_counter()
-                matrix, distance, comparisons = align(a, b, heuristic)
+                _, distance, comparisons = align(a, b, heuristic)
                 end_time = perf_counter()
                 results_per_algo[huristic_name].append(
                     BenchmarkResult(
-                        preprocessing_time=0,  # TODO: Measure preprocessing time?
+                        preprocessing_time=start_time - prep_time,
                         run_time=end_time - start_time,
                         comparisons=comparisons,
                         distance=distance,
@@ -140,6 +177,16 @@ if __name__ == "__main__":
                     )
                 )
 
-        # Print the results
-        print(f"Dataset: {dataset}")
-        print(results_per_algo)
+                # Don't waste too much time on bad algos ;)
+                algo_run_time += (end_time - start_time) + (start_time - prep_time)
+                if max_time and algo_run_time > max_time:
+                    break
+
+        # Print the results, save every result in a separate `.csv`
+        for algo, results in results_per_algo.items():
+            df = pd.DataFrame(results)
+            df.to_csv(f"{dataset}_{algo.name}.csv", index=False)
+
+
+if __name__ == "__main__":
+    fire.Fire(main)
