@@ -1,9 +1,6 @@
 import sys, math
-from typing import Union
 from heapq import heappush, heappop  # Heap for the priority queue
-from collections import defaultdict, namedtuple
-from enum import Enum, auto
-
+from collections import defaultdict
 
 import numpy as np  # To compute sum[i] = num[i] + sum[i+1]
 from fenwick import FenwickTree  # To add and remove matches
@@ -13,37 +10,8 @@ from utils import ceildiv, read_fasta_file, print_stats
 h_dijkstra = lambda ij: 0  # Dijkstra's dummy heuristic
 
 
-class AlgorithmType(Enum):
-    WAGNER_FISCHER = auto()
-    DIJKSTRA = auto()
-    SEED = auto()
-    SEED_PRUNING = auto()
-
-
-Result = namedtuple(
-    "Result",
-    [
-        "matrix",
-        "distance",
-        "comparisons",
-    ],
-)
-
-
-BenchmarkResult = namedtuple(
-    "BenchmarkResult",
-    [
-        "preprocessing_time",
-        "run_time",
-        "comparisons",
-        "length_a",
-        "legth_b",
-    ],
-)
-
-
 def build_seedh(A, B, k):
-    """Builds the admissible seed heuristic for A and B with k-mers."""
+    """Builds the admissible seed heuristic for strings A and B with k-mers."""
     seeds = [A[i : i + k] for i in range(0, len(A) - k + 1, k)]  # O(n)
     kmers = {
         B[j : j + k] for j in range(len(B) - k + 1)
@@ -76,34 +44,14 @@ def next_states_with_cost(u, A, B):
     ]
 
 
-def wagner_fisher(s1, s2) -> Result:
-    # Create a matrix of size (len(s1)+1) x (len(s2)+1)
-    matrix = np.zeros((len(s1) + 1, len(s2) + 1), dtype=int)
-
-    # Initialize the first column and first row of the matrix
-    for i in range(len(s1) + 1):
-        matrix[i, 0] = i
-    for j in range(len(s2) + 1):
-        matrix[0, j] = j
-
-    # Compute Levenshtein distance
-    comparisons = 0
-    for i in range(1, len(s1) + 1):
-        for j in range(1, len(s2) + 1):
-            substitution_cost = s1[i - 1] != s2[j - 1]
-            matrix[i, j] = min(
-                matrix[i - 1, j] + 1,  # Deletion
-                matrix[i, j - 1] + 1,  # Insertion
-                matrix[i - 1, j - 1] + substitution_cost,  # Substitution
-            )
-            comparisons += 1
-
-    # Return the Levenshtein distance
-    return Result(matrix, matrix[len(s1), len(s2)], comparisons)
-
-
 def align(A, B, h):
-    """Standard A* on the grid A x B using a given heuristic h."""
+    """Standard A* on the grid A x B using a given heuristic h.
+
+    :param A: string A
+    :param B: string B
+    :param h: heuristic function `h(ij) -> int`, where `ij` is a tuple of two integers
+    :return: Result object with the cost to target, distance to target, and number of comparisons.
+    """
     start = (0, 0)  # Start state
     target = (len(A), len(B))  # Target state
     Q = []  # Priority queue with candidate states
@@ -116,11 +64,12 @@ def align(A, B, h):
     while Q:
         _, u = heappop(Q)  # Pop state u with lowest priority
         if u == target:
-            return Result(
-                g,
-                g[(len(A) - 1, len(B) - 1)],
-                comparisons,
-            )  # Return cost to target
+            return (
+                g,  # costs dictionary
+                g[(len(A) - 1, len(B) - 1)],  # distance from A to B
+                comparisons,  # number of matrix cells evaluated
+            )
+
         if u[0] > target[0] or u[1] > target[1]:
             continue  # Skip states after target
 
@@ -130,9 +79,8 @@ def align(A, B, h):
                 if u[1] in h.M[s]:  # If the expanded state is a beginning of a match
                     h.M.remove(s, u[1])  # Remove match from M
                     assert len(h.M[s]) >= 0
-                    if not h.M[
-                        s
-                    ]:  # If no more matches for this seed, then increase the misses
+                    # If no more matches for this seed, then increase the misses
+                    if not h.M[s]:
                         assert not h.misses[s]
                         h.misses.add(s, +1)
 
@@ -155,9 +103,3 @@ if __name__ == "__main__":
 
         g_seed, distance_seed, comparisons_seed = align(A, B, h_seed)
         print_stats(A, B, k, g_seed)
-
-        matrix_wf, distance_wf, comparisons_wf = wagner_fisher(A, B)
-        print(
-            f"Seed comparisons: {comparisons_seed:,} vs Wagner-Fisher: {comparisons_wf:,}"
-        )
-        print(f"Seed distance: {distance_seed:,} vs Wagner-Fisher: {distance_wf:,}")
