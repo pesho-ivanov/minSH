@@ -1,10 +1,23 @@
 import os
 import unittest
 import random
-import editdistance
+import math
 
-from astar import *
-from utils import *
+import editdistance  # third-party baseline
+
+from astar import (
+    h_dijkstra,
+    align,
+    build_seedh,
+    build_seedh_for_pruning,
+    print_stats,
+)
+from utils import (
+    read_fasta_file,
+    generate_random_sequence,
+    apply_errors,
+    save_fasta_file,
+)
 
 
 class TestFastaFunctions(unittest.TestCase):

@@ -2,7 +2,7 @@
 
 _minSH_ is a short working implementation that aligns sequences $A$ and $B$ end to end using a minimal number of edit operations (substitutions, insertions and deletions). As a side effect, it computes the exact edit distance $ed(A,B)$ with near-linear scaling, given limited divergence $d=ed(A,B)/max(|A|, |B|)$. [`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) (~50 loc) implements A* with seed heuristic $h_{seed}(i,j) = \Big| \big\\{ s \in Seeds_{\geq i} \mid  s \notin B \big\\} \Big|$ in a short and simple way:
 
-```Python
+```python
 def build_seed_heuristic(A, B, k):
     """Builds the admissible seed heuristic for A and B with k-mers."""
     
@@ -15,7 +15,8 @@ def build_seed_heuristic(A, B, k):
 ```
 
 Next, we just use the seed heuristic for a starndard A* on the alignment graph `A x B`:
-```Python
+
+```python
 h_seed = build_seed_heuristic(A, B, k=log(len(A)))
 astar(A, B, h_seed)
 ```
@@ -46,6 +47,12 @@ pip install rolling
 pip install numpy
 pip install heapq
 pip install fenwick
+```
+
+Run tests first:`
+
+```bash
+python test_astar.py
 ```
 
 `astar.py` takes `k` and a file with two strings (`A` and `B`), and returns the exact edit distance `ed(A,B)` between them:
