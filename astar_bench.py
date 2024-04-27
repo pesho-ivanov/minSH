@@ -126,13 +126,13 @@ def main(
             random.sample(dataset_tokenized, jobs) if jobs else dataset_tokenized
         )
         strings_pairs = (
-            zip(strings_a, strings_b) if jobs else product(strings_a, strings_b)
+            list(zip(strings_a, strings_b)) if jobs else list(product(strings_a, strings_b))
         )
 
         # Run the baseline algo, aggregating all the results for the Wagner Fisher
         print(f"-- Running algorithm: Wagner-Fisher")
         algo_run_time = 0
-        for a, b in strings_pairs:
+        for a, b in tqdm(strings_pairs):
             start_time = perf_counter()
             result = wagner_fisher(a, b)
             end_time = perf_counter()
@@ -160,7 +160,7 @@ def main(
             print(f"-- Running algorithm: {huristic_name}")
 
             algo_run_time = 0
-            for a, b in zip(strings_a, strings_b):
+            for a, b in tqdm(strings_pairs):
                 prep_time = perf_counter()
                 heuristic = heursitic_generator(a, b)
                 start_time = perf_counter()

@@ -1,9 +1,9 @@
 import cProfile
 import unittest
-import test_astar
+import astar_test
 import pstats
 
-suite = unittest.TestLoader().loadTestsFromModule(test_astar)
+suite = unittest.TestLoader().loadTestsFromModule(astar_test)
 cProfile.run("unittest.TextTestRunner().run(suite)", "profile_output.txt")
 
 stats = pstats.Stats("profile_output.txt")
