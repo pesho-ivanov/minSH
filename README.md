@@ -40,26 +40,46 @@ The A* algirthm is a generalization of Dijkstra's algorithm that explores the no
 
 ## Usage
 
-Prerequisites:
+To use in your projects, simply add this repository as a dependency:
 
 ```bash
-pip install rolling
-pip install numpy
-pip install heapq
-pip install fenwick
+pip install git+https://github.com/pesho-ivanov/minSH.git
 ```
 
-The libnary comes packed with helper scripts:
+Then call the `align` function with two strings `A` and `B`:
 
-```bash
-python scripts/test.py # tests
-python scripts/generate.py # synthetic FASTA files
+```python
+import math
+from minsh.astar import h_dijkstra, align, build_seedh, print_stats
+
+A = "ACGT" * 100
+B = "AGCT" * 100
+
+alphabet_size = 4
+step = math.ceil(math.log(len(A), alphabet_size))
+h_seed = build_seedh(A, B, step)
+
+g_seed = align(A, B, h_seed)
+print_stats(A, B, k, g_seed)
 ```
 
-`astar.py` takes `k` and a file with two strings (`A` and `B`), and returns the exact edit distance `ed(A,B)` between them:
+The library can also be used as a standalone command-line script:
 
 ```bash
-python minsh/astar.py data/small_A.fa data/small_B.fa
+$ astar data/small_A.fa data/small_B.fa
+> Aligning sequences with len(A)=18, k=3:
+> Edit distance: 3
+> Error rate: 16.67%
+> Explored band: 3.39
+```
+
+To explore additional tooling - clone the repository and install the dependencies:
+
+```bash
+git clone https://github.com/pesho-ivanov/minSH && cd minSH
+pip install -r requirements.txt
+python scripts/test.py      # tests
+python scripts/generate.py  # synthetic FASTA files
 ```
 
 ## TODO

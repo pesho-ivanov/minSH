@@ -107,5 +107,6 @@ def print_stats(A: str, B: str, k: int, g: Dict[Tuple[int, int], int]) -> None:
     """Print for a given grid the edit distance and how many nodes were explored."""
     target = (len(A), len(B))
     print(f"Aligning sequences with len(A)={len(A)}, k={k}:")
+    print(f"Edit distance: {g[target]:,}")
     print(f"Error rate: {100 * g[target] / len(A) :.2f}%")
     print(f"Explored band: {len(g) / len(A) :.2f}")

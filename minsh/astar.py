@@ -1,11 +1,12 @@
 import sys, math
 from heapq import heappush, heappop  # Heap for the priority queue
 from collections import defaultdict
+from typing import Union, Callable
 
 import numpy as np  # To compute sum[i] = num[i] + sum[i+1]
 from fenwick import FenwickTree  # To add and remove matches
 
-from utils import ceildiv, read_fasta_file, print_stats
+from minsh.utils import ceildiv, read_fasta_file, print_stats
 
 h_dijkstra = lambda ij: 0  # Dijkstra's dummy heuristic
 
@@ -50,14 +51,22 @@ def next_states_with_cost(u, A, B):
     )
 
 
-def align(A, B, h):
+def align(
+    A: Union[str, bytes],
+    B: Union[str, bytes],
+    h: Callable,
+    return_stats: bool = False,
+):
     """Standard A* on the grid A x B using a given heuristic h.
 
     :param A:   string A.
     :param B:   string B.
     :param h:   heuristic function `h(ij) -> int`, where `ij` is a tuple of two integers.
-    :return:    tuple with the dictionary of state distances, distance to target, and
-                number of cells evaluated during traversal.
+    :param return_stats:    whether to return the statistics of the alignment.
+
+    :return:    by default, return the dictionary of state distances.
+                if `return_stats` is True, return a  tuple with the dictionary of state distances,
+                distance to target, and number of cells evaluated during traversal.
     """
     start = (0, 0)  # Start state
     target = (len(A), len(B))  # Target state
@@ -74,9 +83,13 @@ def align(A, B, h):
         _, u = heappop(Q)  # Pop state u with lowest priority
         if u == target:
             return (
-                g,  # costs dictionary
-                g[(len(A) - 1, len(B) - 1)],  # distance from A to B
-                cells,  # number of matrix cells evaluated
+                (
+                    g,  # costs dictionary
+                    g[(len(A) - 1, len(B) - 1)],  # distance from A to B
+                    cells,  # number of matrix cells evaluated
+                )
+                if return_stats
+                else g
             )
 
         if u[0] > target[0] or u[1] > target[1]:
@@ -102,7 +115,7 @@ def align(A, B, h):
                 heappush(Q, (priority, v))  # Push v with new priority
 
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) != 3:
         print("Usage: python astar.py <A.fa> <A.fa>")
     else:
@@ -110,5 +123,9 @@ if __name__ == "__main__":
         k = math.ceil(math.log(len(A), 4))
         h_seed = build_seedh(A, B, k)
 
-        g_seed, distance_seed, comparisons_seed = align(A, B, h_seed)
+        g_seed = align(A, B, h_seed)
         print_stats(A, B, k, g_seed)
+
+
+if __name__ == "__main__":
+    main()

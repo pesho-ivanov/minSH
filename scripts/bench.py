@@ -7,8 +7,8 @@ from collections import defaultdict
 from glob import glob
 import math
 import random
+import argparse
 
-import fire
 import pandas as pd
 from tqdm import tqdm
 import numpy as np
@@ -72,18 +72,25 @@ def wrapped_dijkstra(A, B):
     return h_dijkstra
 
 
+def alphabet_size(s):
+    return len(set(c for c in s))
+
+
 def wrapped_seed(A, B):
-    k = math.ceil(math.log(len(A), 4))
+    s = max(alphabet_size(A), alphabet_size(B))
+    k = math.ceil(math.log(len(A), s))
     return build_seedh(A, B, k)
 
 
 def wrapped_seed_prune(A, B):
-    k = math.ceil(math.log(len(A), 4))
+    s = max(alphabet_size(A), alphabet_size(B))
+    k = math.ceil(math.log(len(A), s))
     return build_seedh_for_pruning(A, B, k)
 
 
 def wrapped_multi_k(A, B):
-    k = math.ceil(math.log(len(A), 4))
+    s = max(alphabet_size(A), alphabet_size(B))
+    k = math.ceil(math.log(len(A), s))
     h_value = np.full(len(A) + 2, 0)
     for j in range(2, k + 1):
         seeds = [A[i : i + j] for i in range(0, len(A) - j + 1, j)]  # O(n)
@@ -94,10 +101,12 @@ def wrapped_multi_k(A, B):
         suffix_sum = np.cumsum(is_seed_missing[::-1])[::-1]  # O(n)
         # This is expanding suffix_sum so that the lookup
         # suffix_sum[ceildiv(ij[0], k)] becomes h_value[ij[0]].
-        local_h_value = np.concatenate(
-                ([suffix_sum[0]], np.repeat(suffix_sum[1:], j)))[:len(A) + 2]
+        local_h_value = np.concatenate(([suffix_sum[0]], np.repeat(suffix_sum[1:], j)))[
+            : len(A) + 2
+        ]
         h_value = np.maximum(h_value, local_h_value)
     return lambda ij, k=k: h_value[ij[0]]  # O(1)
+
 
 def wrapped_straighest_zeroline_heuristic(A, B):
     """
@@ -157,7 +166,6 @@ def main(
         results_per_algo: Dict[AlgorithmType, List[BenchmarkResult]] = defaultdict(list)
 
         # Load the dataset and split it into whitespace or newline separated strings
-        # > text = Str(File(dataset)) faster
         with open(dataset, "r") as f:
             text = f.read(1_000_000 * 64)
         tokens = text.splitlines() if split == "line" else text.split()
@@ -226,7 +234,12 @@ def main(
                 prep_time = perf_counter()
                 heuristic = heursitic_generator(a_binary, b_binary)
                 start_time = perf_counter()
-                states, distance, cells = align(a_binary, b_binary, heuristic)
+                states, distance, cells = align(
+                    a_binary,
+                    b_binary,
+                    heuristic,
+                    return_stats=True,
+                )
                 end_time = perf_counter()
                 results_per_algo[algo].append(
                     BenchmarkResult(
@@ -270,13 +283,40 @@ def main(
                 )
         df = pd.DataFrame(aggregated_results)
         df.to_csv(f"{dataset}.csv", index=False)
-        summary_statistics = df.groupby('Algorithm').agg({
-            'Run Time': ['sum', 'mean', 'var'],
-            'Cells': ['mean', 'var'],
-            'Distance': ['mean', 'var']
-        })
+        summary_statistics = df.groupby("Algorithm").agg(
+            {
+                "Run Time": ["sum", "mean", "var"],
+                "Cells": ["mean", "var"],
+                "Distance": ["mean", "var"],
+            }
+        )
         print(summary_statistics)
 
 
 if __name__ == "__main__":
-    fire.Fire(main)
+    parser = argparse.ArgumentParser(
+        description="Run benchmarking for sequence alignment algorithms."
+    )
+    parser.add_argument(
+        "path", type=str, help="Path to the dataset file or GLOB pattern"
+    )
+    parser.add_argument(
+        "--split",
+        type=str,
+        default="line",
+        choices=["line", "whitespace"],
+        help="Method to split dataset into strings",
+    )
+    parser.add_argument(
+        "--jobs", type=int, help="Number of parallel string alignments to perform"
+    )
+    parser.add_argument(
+        "--max-time",
+        type=float,
+        help="Maximum time in seconds to spend on each algorithm",
+    )
+    parser.add_argument(
+        "--min-length", type=int, help="Minimum length of strings to consider"
+    )
+    args = parser.parse_args()
+    main(args.path, args.split, args.jobs, args.max_time, args.min_length)
