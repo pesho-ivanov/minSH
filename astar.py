@@ -84,13 +84,13 @@ def align(A, B, h):
                         assert not h.misses[s]
                         h.misses.add(s, +1)
 
+        cells += 1
         for v, edit_cost in next_states_with_cost(u, A, B):  # For all edges u->v
             new_cost_to_next = g[u] + edit_cost  # Try optimal path through u->v
             if v not in g or new_cost_to_next < g[v]:  # If new path is better
                 g[v] = new_cost_to_next  # Update cost to v
                 priority = new_cost_to_next + h(v)  # Compute priority
                 heappush(Q, (priority, v))  # Push v with new priority
-            cells += 1
 
 
 if __name__ == "__main__":
