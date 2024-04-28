@@ -55,13 +55,13 @@ class TestAStar(unittest.TestCase):
         self.target = (len(self.A), len(self.B))
 
     def test_dijkstra(self):
-        g = align(self.A, self.B, h_dijkstra)
+        g, _, _ = align(self.A, self.B, h_dijkstra)
         self.assertEqual(g[self.target], editdistance.eval(self.A, self.B))
 
     def test_astar_with_seed_heuristic_small(self):
         k = 3
         h_seed = build_seedh(self.A, self.B, k)
-        g = align(self.A, self.B, h_seed)
+        g, _, _ = align(self.A, self.B, h_seed)
         self.assertEqual(g[self.target], editdistance.eval(self.A, self.B))
 
     def test_astar_with_seedh_big(self):
@@ -72,7 +72,7 @@ class TestAStar(unittest.TestCase):
         target = (len(A), len(B))
         k = math.ceil(math.log(len(A), 4))
         h_seed = build_seedh(A, B, k)
-        g = align(A, B, h_seed)
+        g, _, _ = align(A, B, h_seed)
         # print_stats(A, B, k, g)
         # self.assertEqual(g[target], editdistance.eval(A, B))
 
@@ -85,7 +85,7 @@ class TestAStar(unittest.TestCase):
         target = (len(A), len(B))
         k = math.ceil(math.log(len(A), 4))
         h_seed_prune = build_seedh_for_pruning(A, B, k)
-        g_prune = align(A, B, h_seed_prune)
+        g_prune, _, _ = align(A, B, h_seed_prune)
         print_stats(A, B, k, g_prune)
 
 
