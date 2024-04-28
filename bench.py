@@ -21,6 +21,7 @@ class AlgorithmType(Enum):
     DIJKSTRA = "Dijkstra"
     SEED = "Seed"
     SEED_PRUNING = "Seed Pruning"
+    MULTI_K = "Multi-k"
     ZERO_STRAIGHTLINE = "Zero Straightline"
 
 
@@ -80,6 +81,23 @@ def wrapped_seed_prune(A, B):
     k = math.ceil(math.log(len(A), 4))
     return build_seedh_for_pruning(A, B, k)
 
+
+def wrapped_multi_k(A, B):
+    k = math.ceil(math.log(len(A), 4))
+    h_value = np.full(len(A) + 2, 0)
+    for j in range(2, k + 1):
+        seeds = [A[i : i + j] for i in range(0, len(A) - j + 1, j)]  # O(n)
+        kmers = {
+            B[j : j + j] for j in range(len(B) - j + 1)
+        }  # O(nk), O(n) with rolling hash (Rabin-Karp)
+        is_seed_missing = [s not in kmers for s in seeds] + [False] * 2  # O(n)
+        suffix_sum = np.cumsum(is_seed_missing[::-1])[::-1]  # O(n)
+        # This is expanding suffix_sum so that the lookup
+        # suffix_sum[ceildiv(ij[0], k)] becomes h_value[ij[0]].
+        local_h_value = np.concatenate(
+                ([suffix_sum[0]], np.repeat(suffix_sum[1:], j)))[:len(A) + 2]
+        h_value = np.maximum(h_value, local_h_value)
+    return lambda ij, k=k: h_value[ij[0]]  # O(1)
 
 def wrapped_straighest_zeroline_heuristic(A, B):
     """
@@ -196,6 +214,7 @@ def main(
             (wrapped_dijkstra, AlgorithmType.DIJKSTRA),
             (wrapped_seed, AlgorithmType.SEED),
             (wrapped_seed_prune, AlgorithmType.SEED_PRUNING),
+            (wrapped_multi_k, AlgorithmType.MULTI_K),
         ]:
             print(f"-- Running algorithm: {algo.name}")
 
