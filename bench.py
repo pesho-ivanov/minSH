@@ -116,7 +116,9 @@ def main(
     """Benchmarking script for the A* algorithm with different heuristics.
 
     :param path:        Path to the newline- or whitespace-delimited dataset file, or a GLOB pattern like `data/*.txt`
-                        if you want to benchmark multiple datasets.
+                        if you want to benchmark multiple datasets. Datasets can be downloaded from
+                        https://github.com/rghilduta/human-chromosome-data-generator/tree/main/examples . The protein
+                        dataset was generated using ./generate_chromosome_data.sh -r 50000 -l 1000
     :param split:       Tokenization method to split the dataset into strings. Either "line" or "whitespace".
     :param jobs:        Number of parallel string cells to perform. If not specified, all strings possible
                         pairs of strings from files will be evaluates.
