@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-''' compare_algs.py
+""" compare_algs.py
 
     usage:
 
         ./compare_algs.py <csv_file>
-'''
+"""
 
 
 # ______________________________________________________________________
@@ -17,17 +17,19 @@ import sys
 # ______________________________________________________________________
 # Functions
 
+
 def print_row(row, field_lens):
     for i, field in enumerate(row):
         width = field_lens[i] + 2  # + 2 is just padding / buffer.
-        s = field[:width].ljust(width, ' ')
-        print(s, end=' ')
+        s = field[:width].ljust(width, " ")
+        print(s, end=" ")
     print()
+
 
 # ______________________________________________________________________
 # Main
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     if len(sys.argv) != 2:
         print(__doc__)

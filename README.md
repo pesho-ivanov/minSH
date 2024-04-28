@@ -49,10 +49,11 @@ pip install heapq
 pip install fenwick
 ```
 
-Run tests first:`
+The libnary comes packed with helper scripts:
 
 ```bash
-python test.py
+python scripts/test.py # tests
+python scripts/generate.py # synthetic FASTA files
 ```
 
 `astar.py` takes `k` and a file with two strings (`A` and `B`), and returns the exact edit distance `ed(A,B)` between them:
