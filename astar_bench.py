@@ -85,15 +85,17 @@ def main(
     split: Literal["line", "whitespace"] = "line",
     jobs: Optional[int] = None,
     max_time: Optional[float] = None,
+    min_length: Optional[int] = None,
 ):
     """Benchmarking script for the A* algorithm with different heuristics.
 
-    :param path:    Path to the newline- or whitespace-delimited dataset file, or a GLOB pattern like `data/*.txt`
-                    if you want to benchmark multiple datasets.
-    :param split:   Tokenization method to split the dataset into strings. Either "line" or "whitespace".
-    :param jobs:    Number of parallel string cells to perform. If not specified, all strings possible
-                    pairs of strings from files will be evaluates.
-
+    :param path:        Path to the newline- or whitespace-delimited dataset file, or a GLOB pattern like `data/*.txt`
+                        if you want to benchmark multiple datasets.
+    :param split:       Tokenization method to split the dataset into strings. Either "line" or "whitespace".
+    :param jobs:        Number of parallel string cells to perform. If not specified, all strings possible
+                        pairs of strings from files will be evaluates.
+    :param max_time:    Maximum time in seconds to spend on each algorithm. If not specified, all strings will be evaluated.
+    :param min_length:  Minimum length of strings to consider. If not specified, all strings will be evaluated.
     """
     assert split in [
         "line",
@@ -109,21 +111,18 @@ def main(
         results_per_algo: Dict[AlgorithmType, List[BenchmarkResult]] = defaultdict(list)
 
         # Load the dataset and split it into whitespace or newline separated strings
-        # > dataset_content = Str(File(dataset)) faster
+        # > text = Str(File(dataset)) faster
         with open(dataset, "r") as f:
-            dataset_content = f.read()
-        dataset_tokenized = (
-            dataset_content.splitlines() if split == "line" else dataset_content.split()
-        )
-        dataset_tokenized = [s for s in dataset_tokenized if len(s) > 5]
+            text = f.read(1_000_000 * 64)
+        tokens = text.splitlines() if split == "line" else text.split()
+        if min_length:
+            tokens = [s for s in tokens if len(s) > min_length]
+        mean_length = np.mean([len(s.encode("utf8")) for s in tokens])
+        print(f"-- Average token: {mean_length:.2f} bytes")
 
         # Random sample pairs from strings
-        strings_a = (
-            random.sample(dataset_tokenized, jobs) if jobs else dataset_tokenized
-        )
-        strings_b = (
-            random.sample(dataset_tokenized, jobs) if jobs else dataset_tokenized
-        )
+        strings_a = random.sample(tokens, jobs) if jobs else tokens
+        strings_b = random.sample(tokens, jobs) if jobs else tokens
         strings_pairs = (
             list(zip(strings_a, strings_b))
             if jobs
@@ -135,8 +134,11 @@ def main(
         algo = AlgorithmType.WAGNER_FISCHER
         algo_run_time = 0
         for a, b in tqdm(strings_pairs):
+            # Normalize strings to be byte-string, whould be more efficient
+            a_binary = a.encode("utf8")
+            b_binary = b.encode("utf8")
             start_time = perf_counter()
-            result = wagner_fisher(a, b)
+            result = wagner_fisher(a_binary, b_binary)
             end_time = perf_counter()
             results_per_algo[algo].append(
                 BenchmarkResult(
@@ -144,8 +146,8 @@ def main(
                     run_time=end_time - start_time,
                     cells=result.cells,
                     distance=result.distance,
-                    length_a=len(a),
-                    length_b=len(b),
+                    length_a=len(a_binary),
+                    length_b=len(b_binary),
                 )
             )
 
@@ -166,14 +168,17 @@ def main(
             (wrapped_seed, AlgorithmType.SEED),
             (wrapped_seed_prune, AlgorithmType.SEED_PRUNING),
         ]:
-            print(f"-- Running algorithm: {algo}")
+            print(f"-- Running algorithm: {algo.name}")
 
             algo_run_time = 0
             for a, b in tqdm(strings_pairs):
+                # Normalize strings to be byte-string, whould be more efficient
+                a_binary = a.encode("utf8")
+                b_binary = b.encode("utf8")
                 prep_time = perf_counter()
-                heuristic = heursitic_generator(a, b)
+                heuristic = heursitic_generator(a_binary, b_binary)
                 start_time = perf_counter()
-                _, distance, cells = align(a, b, heuristic)
+                _, distance, cells = align(a_binary, b_binary, heuristic)
                 end_time = perf_counter()
                 results_per_algo[algo].append(
                     BenchmarkResult(
@@ -181,8 +186,8 @@ def main(
                         run_time=end_time - start_time,
                         cells=cells,
                         distance=distance,
-                        length_a=len(a),
-                        length_b=len(b),
+                        length_a=len(a_binary),
+                        length_b=len(b_binary),
                     )
                 )
 
@@ -204,7 +209,7 @@ def main(
             for result in results:
                 aggregated_results.append(
                     {
-                        "Algorithm": algo.value,
+                        "Algorithm": algo.name,
                         "Preprocessing Time": result.preprocessing_time,
                         "Run Time": result.run_time,
                         "Cells": result.cells,

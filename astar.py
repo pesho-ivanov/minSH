@@ -35,22 +35,29 @@ def build_seedh_for_pruning(A, B, k):
 
 
 def next_states_with_cost(u, A, B):
-    """Generates three states following curr (right, down, diagonal) with cost 0
-    for match, 1 otherwise."""
-    return [
+    """Suggest the next state, given the current state and the strings A and B.
+
+    :param u:   current state - a tuple of two integers, for the current position in A and B.
+    :param A:   string A.
+    :param B:   string B.
+    :return:    three tuples, each containing the next state and the cost of the transition
+                for the right, down, and diagonal moves with cost 0 for match, 1 otherwise.
+    """
+    return (
         ((u[0] + 1, u[1]), 1),
         ((u[0], u[1] + 1), 1),
         ((u[0] + 1, u[1] + 1), A[u[0]] != B[u[1]]),
-    ]
+    )
 
 
 def align(A, B, h):
     """Standard A* on the grid A x B using a given heuristic h.
 
-    :param A: string A
-    :param B: string B
-    :param h: heuristic function `h(ij) -> int`, where `ij` is a tuple of two integers
-    :return: Result object with the cost to target, distance to target, and number of cells.
+    :param A:   string A.
+    :param B:   string B.
+    :param h:   heuristic function `h(ij) -> int`, where `ij` is a tuple of two integers.
+    :return:    tuple with the dictionary of state distances, distance to target, and
+                number of cells evaluated during traversal.
     """
     start = (0, 0)  # Start state
     target = (len(A), len(B))  # Target state
