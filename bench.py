@@ -249,6 +249,12 @@ def main(
                 )
         df = pd.DataFrame(aggregated_results)
         df.to_csv(f"{dataset}.csv", index=False)
+        summary_statistics = df.groupby('Algorithm').agg({
+            'Run Time': ['sum', 'mean', 'var'],
+            'Cells': ['mean', 'var'],
+            'Distance': ['mean', 'var']
+        })
+        print(summary_statistics)
 
 
 if __name__ == "__main__":
