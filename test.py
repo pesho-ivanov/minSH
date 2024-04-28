@@ -5,14 +5,14 @@ import math
 
 import editdistance  # third-party baseline
 
-from astar import (
+from minsh.astar import (
     h_dijkstra,
     align,
     build_seedh,
     build_seedh_for_pruning,
     print_stats,
 )
-from utils import (
+from minsh.utils import (
     read_fasta_file,
     generate_random_sequence,
     apply_errors,

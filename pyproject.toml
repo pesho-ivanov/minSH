@@ -1,0 +1,36 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools>=42", "wheel"]
+
+[project]
+name = "minSH"
+version = "0.1.0"
+description = "Minimalistic Seed Heuristic for A* sequence alignment"
+authors = [{ name = "Pesho Ivanov", email = "pesho.ivanov@example.com" }]
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.6"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = ["numpy", "rolling"]
+
+[project.urls]
+homepage = "https://github.com/pesho-ivanov/minSH"
+repository = "https://github.com/pesho-ivanov/minSH"
+documentation = "https://pesho-ivanov.github.io/"
+
+[project.scripts]
+astar = "minsh.astar:main"
+
+[tool.setuptools.packages.find]
+where = ["minsh"]
+
+[tool.black]
+line-length = 88
+target-version = ['py36']

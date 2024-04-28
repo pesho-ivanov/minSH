@@ -13,7 +13,7 @@ import pandas as pd
 from tqdm import tqdm
 import numpy as np
 
-from astar import h_dijkstra, align, build_seedh, build_seedh_for_pruning
+from minsh.astar import h_dijkstra, align, build_seedh, build_seedh_for_pruning
 
 
 class AlgorithmType(Enum):
@@ -178,7 +178,7 @@ def main(
                 prep_time = perf_counter()
                 heuristic = heursitic_generator(a_binary, b_binary)
                 start_time = perf_counter()
-                _, distance, cells = align(a_binary, b_binary, heuristic)
+                states, distance, cells = align(a_binary, b_binary, heuristic)
                 end_time = perf_counter()
                 results_per_algo[algo].append(
                     BenchmarkResult(
@@ -190,6 +190,8 @@ def main(
                         length_b=len(b_binary),
                     )
                 )
+
+                del states
 
                 # Don't waste too much time on bad algos ;)
                 algo_run_time += (end_time - start_time) + (start_time - prep_time)
