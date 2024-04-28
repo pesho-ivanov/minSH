@@ -64,9 +64,11 @@ def align(A, B, h):
     Q = []  # Priority queue with candidate states
     heappush(Q, (0, start))  # Push start state with priority 0
     g = {start: 0}  # Cost of getting to each state
-    A += "!"
-    B += "!"  # Barrier to avoid index out of bounds
     cells = 0
+
+    # Barrier to avoid index out of bounds
+    A += b"!" if isinstance(A, bytes) else "!"
+    B += b"!" if isinstance(B, bytes) else "!"
 
     while Q:
         _, u = heappop(Q)  # Pop state u with lowest priority

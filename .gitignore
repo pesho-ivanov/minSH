@@ -3,3 +3,4 @@ __pycache__
 profile_output.txt
 *.txt
 *.csv
+*.egg-info
