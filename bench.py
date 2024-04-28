@@ -21,6 +21,7 @@ class AlgorithmType(Enum):
     DIJKSTRA = "Dijkstra"
     SEED = "Seed"
     SEED_PRUNING = "Seed Pruning"
+    ZERO_STRAIGHTLINE = "Zero Straightline"
 
 
 @dataclass
@@ -78,6 +79,31 @@ def wrapped_seed(A, B):
 def wrapped_seed_prune(A, B):
     k = math.ceil(math.log(len(A), 4))
     return build_seedh_for_pruning(A, B, k)
+
+
+def wrapped_straighest_zeroline_heuristic(A, B):
+    """
+    Build the heuristic for the A* algorithm that gives a lower bound where if you are at (i, j) it assumes that you
+    take a straight line down with slope -1 and then go straight right or down to the end. Which one you do depends on the
+    values of i and j. If you are further to the right you will go down and if you are further down you will go right.
+    How far you go is the distance of the smaller of those two.
+    """
+
+    def logic(x: int, y: int, x_max: int, y_max: int) -> int:
+        assert (
+            x_max + 1 >= x and y_max + 1 >= y
+        ), f"({x}, {y}) is not in the grid ({x_max}, {y_max})"
+        if x == x_max + 1 or y == y_max + 1:
+            return x_max + y_max + 1 + 1  # Super bad never go here
+
+        dx = x_max - x
+        dy = y_max - y
+        # If we are equidistant (on the diagonal) then we will go diagnal => 0
+        # If we are closer to the bottom then we will go right => dx > dy & then you use up dy first and then dx - dy going right
+        # If we are closer to the right then we will go down => dy > dx & then you use up dx first and then dy - dx going down
+        return abs(dx - dy)
+
+    return lambda ij: logic(ij[0], ij[1], len(A), len(B))
 
 
 def main(
@@ -164,6 +190,7 @@ def main(
         )
 
         for heursitic_generator, algo in [
+            (wrapped_straighest_zeroline_heuristic, AlgorithmType.ZERO_STRAIGHTLINE),
             (wrapped_dijkstra, AlgorithmType.DIJKSTRA),
             (wrapped_seed, AlgorithmType.SEED),
             (wrapped_seed_prune, AlgorithmType.SEED_PRUNING),
