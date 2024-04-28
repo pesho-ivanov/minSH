@@ -50,7 +50,7 @@ def align(A, B, h):
     :param A: string A
     :param B: string B
     :param h: heuristic function `h(ij) -> int`, where `ij` is a tuple of two integers
-    :return: Result object with the cost to target, distance to target, and number of comparisons.
+    :return: Result object with the cost to target, distance to target, and number of cells.
     """
     start = (0, 0)  # Start state
     target = (len(A), len(B))  # Target state
@@ -59,7 +59,7 @@ def align(A, B, h):
     g = {start: 0}  # Cost of getting to each state
     A += "!"
     B += "!"  # Barrier to avoid index out of bounds
-    comparisons = 0
+    cells = 0
 
     while Q:
         _, u = heappop(Q)  # Pop state u with lowest priority
@@ -67,7 +67,7 @@ def align(A, B, h):
             return (
                 g,  # costs dictionary
                 g[(len(A) - 1, len(B) - 1)],  # distance from A to B
-                comparisons,  # number of matrix cells evaluated
+                cells,  # number of matrix cells evaluated
             )
 
         if u[0] > target[0] or u[1] > target[1]:
@@ -90,7 +90,7 @@ def align(A, B, h):
                 g[v] = new_cost_to_next  # Update cost to v
                 priority = new_cost_to_next + h(v)  # Compute priority
                 heappush(Q, (priority, v))  # Push v with new priority
-            comparisons += 1
+            cells += 1
 
 
 if __name__ == "__main__":

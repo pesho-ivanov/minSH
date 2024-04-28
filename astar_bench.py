@@ -27,14 +27,14 @@ class AlgorithmType(Enum):
 class Result:
     matrix: np.ndarray
     distance: int
-    comparisons: int
+    cells: int
 
 
 @dataclass
 class BenchmarkResult:
     preprocessing_time: float
     run_time: float
-    comparisons: int
+    cells: int
     distance: int
     length_a: int
     length_b: int
@@ -51,7 +51,7 @@ def wagner_fisher(s1, s2) -> Result:
         matrix[0, j] = j
 
     # Compute Levenshtein distance
-    comparisons = 0
+    cells = 0
     for i in range(1, len(s1) + 1):
         for j in range(1, len(s2) + 1):
             substitution_cost = s1[i - 1] != s2[j - 1]
@@ -60,10 +60,10 @@ def wagner_fisher(s1, s2) -> Result:
                 matrix[i, j - 1] + 1,  # Insertion
                 matrix[i - 1, j - 1] + substitution_cost,  # Substitution
             )
-            comparisons += 1
+            cells += 1
 
     # Return the Levenshtein distance
-    return Result(matrix, matrix[len(s1), len(s2)], comparisons)
+    return Result(matrix, matrix[len(s1), len(s2)], cells)
 
 
 def wrapped_dijkstra(A, B):
@@ -91,7 +91,7 @@ def main(
     :param path:    Path to the newline- or whitespace-delimited dataset file, or a GLOB pattern like `data/*.txt`
                     if you want to benchmark multiple datasets.
     :param split:   Tokenization method to split the dataset into strings. Either "line" or "whitespace".
-    :param jobs:    Number of parallel string comparisons to perform. If not specified, all strings possible
+    :param jobs:    Number of parallel string cells to perform. If not specified, all strings possible
                     pairs of strings from files will be evaluates.
 
     """
@@ -132,16 +132,17 @@ def main(
 
         # Run the baseline algo, aggregating all the results for the Wagner Fisher
         print(f"-- Running algorithm: Wagner-Fisher")
+        algo = AlgorithmType.WAGNER_FISCHER
         algo_run_time = 0
         for a, b in tqdm(strings_pairs):
             start_time = perf_counter()
             result = wagner_fisher(a, b)
             end_time = perf_counter()
-            results_per_algo[AlgorithmType.WAGNER_FISCHER].append(
+            results_per_algo[algo].append(
                 BenchmarkResult(
                     preprocessing_time=0,
                     run_time=end_time - start_time,
-                    comparisons=result.comparisons,
+                    cells=result.cells,
                     distance=result.distance,
                     length_a=len(a),
                     length_b=len(b),
@@ -153,25 +154,32 @@ def main(
             if max_time and algo_run_time > max_time:
                 break
 
-        for heursitic_generator, huristic_name in [
+        # Log the number of evaluated cells as opposed to the total product of all lengths
+        cells_eval = sum(r.cells for r in results_per_algo[algo])
+        cells_totall = sum(r.length_a * r.length_b for r in results_per_algo[algo])
+        print(
+            f"--- {cells_eval:,} / {cells_totall:,} cells = {cells_eval / cells_totall:.2%}"
+        )
+
+        for heursitic_generator, algo in [
             (wrapped_dijkstra, AlgorithmType.DIJKSTRA),
             (wrapped_seed, AlgorithmType.SEED),
             (wrapped_seed_prune, AlgorithmType.SEED_PRUNING),
         ]:
-            print(f"-- Running algorithm: {huristic_name}")
+            print(f"-- Running algorithm: {algo}")
 
             algo_run_time = 0
             for a, b in tqdm(strings_pairs):
                 prep_time = perf_counter()
                 heuristic = heursitic_generator(a, b)
                 start_time = perf_counter()
-                _, distance, comparisons = align(a, b, heuristic)
+                _, distance, cells = align(a, b, heuristic)
                 end_time = perf_counter()
-                results_per_algo[huristic_name].append(
+                results_per_algo[algo].append(
                     BenchmarkResult(
                         preprocessing_time=start_time - prep_time,
                         run_time=end_time - start_time,
-                        comparisons=comparisons,
+                        cells=cells,
                         distance=distance,
                         length_a=len(a),
                         length_b=len(b),
@@ -183,6 +191,13 @@ def main(
                 if max_time and algo_run_time > max_time:
                     break
 
+            # Log the number of evaluated cells as opposed to the total product of all lengths
+            cells_eval = sum(r.cells for r in results_per_algo[algo])
+            cells_totall = sum(r.length_a * r.length_b for r in results_per_algo[algo])
+            print(
+                f"--- {cells_eval:,} / {cells_totall:,} cells = {cells_eval / cells_totall:.2%}"
+            )
+
         # Print the results, save every result in a separate `.csv`
         aggregated_results = []
         for algo, results in results_per_algo.items():
@@ -192,7 +207,7 @@ def main(
                         "Algorithm": algo.value,
                         "Preprocessing Time": result.preprocessing_time,
                         "Run Time": result.run_time,
-                        "Comparisons": result.comparisons,
+                        "Cells": result.cells,
                         "Distance": result.distance,
                         "Length A": result.length_a,
                         "Length B": result.length_b,
