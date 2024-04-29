@@ -1,6 +1,6 @@
 # Minimalistic Seed Heuristic for A*
 
-_minSH_ is a short working implementation that aligns sequences $A$ and $B$ end to end using a minimal number of edit operations (substitutions, insertions and deletions). As a side effect, it computes the exact edit distance $ed(A,B)$ with near-linear scaling, given limited divergence $d=ed(A,B)/max(|A|, |B|)$. [`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) (~50 loc) implements A* with seed heuristic $h_{seed}(i,j) = \Big| \big\\{ s \in Seeds_{\geq i} \mid  s \notin B \big\\} \Big|$ in a short and simple way:
+_minSH_ is a short working implementation that aligns sequences $A$ and $B$ end to end using a minimal number of edit operations (substitutions, insertions and deletions). As a side effect, it computes the exact edit distance $ed(A,B)$ with near-linear scaling, given limited divergence $d=ed(A,B)/max(|A|, |B|)$. [`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) implements A* with seed heuristic $h_{seed}(i,j) = \Big| \big\\{ s \in Seeds_{\geq i} \mid  s \notin B \big\\} \Big|$ in a short and simple way:
 
 ```python
 def build_seed_heuristic(A, B, k):
