@@ -18,7 +18,7 @@ classifiers = [
     "Programming Language :: Python",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
-dependencies = ["numpy", "rolling"]
+dependencies = ["numpy", "rolling", "fenwick", "editdistance"]
 
 [project.urls]
 homepage = "https://github.com/pesho-ivanov/minSH"
