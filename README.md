@@ -2,7 +2,7 @@
 
 _minSH_ is a short working implementation that aligns sequences $A$ and $B$ end to end using a minimal number of edit operations (substitutions, insertions and deletions). As a side effect, it computes the exact edit distance $ed(A,B)$ with near-linear scaling, given limited divergence $d=ed(A,B)/max(|A|, |B|)$. [`astar.py`](https://github.com/pesho-ivanov/minSeedHeuristic/blob/master/astar.py) (~50 loc) implements A* with seed heuristic $h_{seed}(i,j) = \Big| \big\\{ s \in Seeds_{\geq i} \mid  s \notin B \big\\} \Big|$ in a short and simple way:
 
-```Python
+```python
 def build_seed_heuristic(A, B, k):
     """Builds the admissible seed heuristic for A and B with k-mers."""
     
@@ -15,7 +15,8 @@ def build_seed_heuristic(A, B, k):
 ```
 
 Next, we just use the seed heuristic for a starndard A* on the alignment graph `A x B`:
-```Python
+
+```python
 h_seed = build_seed_heuristic(A, B, k=log(len(A)))
 astar(A, B, h_seed)
 ```
@@ -39,19 +40,46 @@ The A* algirthm is a generalization of Dijkstra's algorithm that explores the no
 
 ## Usage
 
-Prerequisites:
+To use in your projects, simply add this repository as a dependency:
 
 ```bash
-pip install rolling
-pip install numpy
-pip install heapq
-pip install fenwick
+pip install git+https://github.com/pesho-ivanov/minSH.git
 ```
 
-`astar.py` takes `k` and a file with two strings (`A` and `B`), and returns the exact edit distance `ed(A,B)` between them:
+Then call the `align` function with two strings `A` and `B`:
+
+```python
+import math
+from minsh.astar import h_dijkstra, align, build_seedh, print_stats
+
+A = "ACGT" * 100
+B = "AGCT" * 100
+
+alphabet_size = 4
+step = math.ceil(math.log(len(A), alphabet_size))
+h_seed = build_seedh(A, B, step)
+
+g_seed = align(A, B, h_seed)
+print_stats(A, B, k, g_seed)
+```
+
+The library can also be used as a standalone command-line script:
 
 ```bash
-python astar.py data/small_A.fa data/small_B.fa
+$ astar data/small_A.fa data/small_B.fa
+> Aligning sequences with len(A)=18, k=3:
+> Edit distance: 3
+> Error rate: 16.67%
+> Explored band: 3.39
+```
+
+To explore additional tooling - clone the repository and install the dependencies:
+
+```bash
+git clone https://github.com/pesho-ivanov/minSH && cd minSH
+pip install -r requirements.txt
+python scripts/test.py      # tests
+python scripts/generate.py  # synthetic FASTA files
 ```
 
 ## TODO
