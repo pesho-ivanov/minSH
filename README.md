@@ -56,8 +56,8 @@ A = "ACGT" * 100
 B = "AGCT" * 100
 
 alphabet_size = 4
-step = math.ceil(math.log(len(A), alphabet_size))
-h_seed = build_seedh(A, B, step)
+k = math.ceil(math.log(len(A), alphabet_size))
+h_seed = build_seedh(A, B, k)
 
 g_seed = align(A, B, h_seed)
 print_stats(A, B, k, g_seed)
