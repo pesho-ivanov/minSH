@@ -38,6 +38,8 @@ The A* algirthm is a generalization of Dijkstra's algorithm that explores the no
 2. accurate in estimating $dist(s,u)$, or otherwise the search will not be directly going to $t$
 3. fast to be computed for each explored node, or otherwise, the A* algorithm will be slow in practice
 
+## Match pruning
+
 ## Usage
 
 To use in your projects, simply add this repository as a dependency:
@@ -88,7 +90,7 @@ Optimizations:
 
 * rolling hash: for linear time precomputation
 * greedy matching (aka sliding)
-* pruning, using index trees
+* pruning using index trees
 
 Presentation:
 
